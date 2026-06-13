@@ -4,12 +4,6 @@ import type { AppData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const STEPS = [
-  "Pick your supermarket — Jumbo or Vomar — using the tabs.",
-  "Check the big card to see if the machine is working before you head down.",
-  "At the machine? Tap what you see. Your report instantly updates it for everyone.",
-];
-
 export default async function Home() {
   const boards = await getAllBoards();
   const initial: AppData = { now: Date.now(), boards };
@@ -33,20 +27,6 @@ export default async function Home() {
       </header>
 
       <Board initial={initial} />
-
-      <section className="mt-8 rounded-2xl bg-white/5 p-5 ring-1 ring-white/10">
-        <h2 className="mb-3 text-sm font-semibold text-zinc-200">How to use</h2>
-        <ol className="space-y-3">
-          {STEPS.map((step, i) => (
-            <li key={i} className="flex gap-3 text-sm text-zinc-400">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-semibold text-zinc-200">
-                {i + 1}
-              </span>
-              <span>{step}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
 
       <footer className="mt-8 space-y-3 text-center">
         <p className="rounded-2xl bg-emerald-500/10 px-4 py-4 text-sm text-emerald-200/90 ring-1 ring-emerald-400/20">
