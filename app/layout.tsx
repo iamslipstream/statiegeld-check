@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Bottle Return Check — Jumbo & Vomar machines",
   description:
-    "Crowdsourced status of the bottle & can return (statiegeld) machines at our local Jumbo and Vomar. Check before you carry your bottles and cans down.",
+    "Crowdsourced status of the bottle & can return (statiegeld) machines at the Jumbo and Vomar near Our Domain South East, Amsterdam. Check before you carry your bottles and cans down.",
   applicationName: "Bottle Return Check",
   appleWebApp: {
     capable: true,
