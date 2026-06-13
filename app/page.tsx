@@ -1,28 +1,24 @@
 import { Board } from "@/components/Board";
-import { getReports, isPersistent } from "@/lib/store";
-import type { BoardData } from "@/lib/types";
+import { getAllBoards, isPersistent } from "@/lib/store";
+import type { AppData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const reports = await getReports();
-  const initial: BoardData = {
-    latest: reports[0] ?? null,
-    reports,
-    now: Date.now(),
-  };
+  const boards = await getAllBoards();
+  const initial: AppData = { now: Date.now(), boards };
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 py-8">
       <header className="mb-6 text-center">
         <div className="text-4xl" aria-hidden>
-          🔄
+          ♻️
         </div>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-zinc-100">
-          Statiegeld Check
+          Bottle Return Check
         </h1>
         <p className="mt-1 text-sm text-zinc-400">
-          Is the Jumbo bottle &amp; can machine working? Check before you carry
+          Is the bottle &amp; can return machine working? Check before you carry
           your bag down.
         </p>
       </header>

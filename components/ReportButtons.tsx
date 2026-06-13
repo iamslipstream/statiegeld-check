@@ -5,14 +5,16 @@ import { STATUS_META, STATUS_ORDER, type StatusKey } from "@/lib/types";
 export function ReportButtons({
   onReport,
   pending,
+  locationName,
 }: {
   onReport: (status: StatusKey) => void;
   pending: StatusKey | null;
+  locationName: string;
 }) {
   return (
     <section>
       <h3 className="mb-3 text-center text-sm font-medium text-zinc-400">
-        At the machine right now? Tap what you see:
+        At the {locationName} machine right now? Tap what you see:
       </h3>
       <div className="grid grid-cols-2 gap-3">
         {STATUS_ORDER.map((key) => {

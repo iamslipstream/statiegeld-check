@@ -2,14 +2,14 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Statiegeld Check — Jumbo bottle & can machine",
+  title: "Bottle Return Check — Jumbo & Vomar machines",
   description:
-    "Crowdsourced status of the statiegeld (deposit) machine at our Jumbo. Check before you carry your bottles and cans down.",
-  applicationName: "Statiegeld Check",
+    "Crowdsourced status of the bottle & can return (statiegeld) machines at our local Jumbo and Vomar. Check before you carry your bottles and cans down.",
+  applicationName: "Bottle Return Check",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Statiegeld Check",
+    title: "Bottle Return Check",
   },
 };
 

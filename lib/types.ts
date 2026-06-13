@@ -7,13 +7,48 @@ export interface Report {
   ts: number;
 }
 
-export interface BoardData {
-  /** Most recent report, or null if nobody has reported yet. */
+/** The status board for a single supermarket location. */
+export interface LocationBoard {
+  /** Most recent report for this location, or null if nobody has reported yet. */
   latest: Report | null;
-  /** Most recent reports, newest first (capped). */
+  /** Most recent reports for this location, newest first (capped). */
   reports: Report[];
-  /** Server time (epoch ms) so the client can compute "x min ago" against a trusted clock. */
+}
+
+/** Everything the client needs: one board per location plus a trusted clock. */
+export interface AppData {
+  /** Server time (epoch ms) so the client computes "x min ago" against a trusted clock. */
   now: number;
+  /** Board keyed by location id. */
+  boards: Record<string, LocationBoard>;
+}
+
+export interface LocationMeta {
+  id: string;
+  /** Display name, e.g. "Jumbo". */
+  name: string;
+  /** Short hint shown under the name, e.g. "in the building". */
+  hint?: string;
+}
+
+/**
+ * The supermarkets covered by the app. Add a new entry here and it shows up
+ * everywhere automatically — switcher, status card, reporting and history.
+ * The first entry is the default selection.
+ */
+export const LOCATIONS: LocationMeta[] = [
+  { id: "jumbo", name: "Jumbo", hint: "in the building" },
+  { id: "vomar", name: "Vomar", hint: "nearby" },
+];
+
+export const LOCATION_IDS: string[] = LOCATIONS.map((l) => l.id);
+
+export function isLocationId(value: unknown): value is string {
+  return typeof value === "string" && LOCATION_IDS.includes(value);
+}
+
+export function locationName(id: string): string {
+  return LOCATIONS.find((l) => l.id === id)?.name ?? id;
 }
 
 export const STATUS_ORDER: StatusKey[] = ["working", "broken", "full", "queue"];
@@ -30,6 +65,8 @@ export interface StatusMeta {
   bg: string;
   text: string;
   button: string;
+  /** Small dot colour used in the location switcher. */
+  dot: string;
 }
 
 export const STATUS_META: Record<StatusKey, StatusMeta> = {
@@ -43,6 +80,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     text: "text-emerald-300",
     button:
       "bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-400/30 hover:bg-emerald-500/20 active:bg-emerald-500/30",
+    dot: "bg-emerald-400",
   },
   broken: {
     key: "broken",
@@ -54,6 +92,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     text: "text-rose-300",
     button:
       "bg-rose-500/10 text-rose-200 ring-1 ring-rose-400/30 hover:bg-rose-500/20 active:bg-rose-500/30",
+    dot: "bg-rose-400",
   },
   full: {
     key: "full",
@@ -65,6 +104,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     text: "text-amber-300",
     button:
       "bg-amber-500/10 text-amber-200 ring-1 ring-amber-400/30 hover:bg-amber-500/20 active:bg-amber-500/30",
+    dot: "bg-amber-400",
   },
   queue: {
     key: "queue",
@@ -76,13 +116,13 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     text: "text-sky-300",
     button:
       "bg-sky-500/10 text-sky-200 ring-1 ring-sky-400/30 hover:bg-sky-500/20 active:bg-sky-500/30",
+    dot: "bg-sky-400",
   },
 };
 
 export function isStatusKey(value: unknown): value is StatusKey {
   return (
-    typeof value === "string" &&
-    (STATUS_ORDER as string[]).includes(value)
+    typeof value === "string" && (STATUS_ORDER as string[]).includes(value)
   );
 }
 

@@ -1,22 +1,18 @@
 import { NextResponse } from "next/server";
-import { addReport, getReports } from "@/lib/store";
-import { isStatusKey, type BoardData } from "@/lib/types";
+import { addReport, getAllBoards } from "@/lib/store";
+import { isLocationId, isStatusKey, type AppData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-async function buildBoard(): Promise<BoardData> {
-  const reports = await getReports();
-  return {
-    latest: reports[0] ?? null,
-    reports,
-    now: Date.now(),
-  };
+async function buildAppData(): Promise<AppData> {
+  const boards = await getAllBoards();
+  return { now: Date.now(), boards };
 }
 
 export async function GET() {
   try {
-    const board = await buildBoard();
-    return NextResponse.json(board, {
+    const data = await buildAppData();
+    return NextResponse.json(data, {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (err) {
@@ -36,18 +32,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
   }
 
-  const status = (body as { status?: unknown })?.status;
+  const { location, status } = (body ?? {}) as {
+    location?: unknown;
+    status?: unknown;
+  };
+
+  if (!isLocationId(location)) {
+    return NextResponse.json({ error: "Unknown location." }, { status: 400 });
+  }
   if (!isStatusKey(status)) {
-    return NextResponse.json(
-      { error: "Unknown status." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Unknown status." }, { status: 400 });
   }
 
   try {
-    await addReport(status);
-    const board = await buildBoard();
-    return NextResponse.json(board, {
+    await addReport(location, status);
+    const data = await buildAppData();
+    return NextResponse.json(data, {
       status: 201,
       headers: { "Cache-Control": "no-store" },
     });
