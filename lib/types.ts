@@ -1,0 +1,90 @@
+export type StatusKey = "working" | "broken" | "full" | "queue";
+
+export interface Report {
+  id: string;
+  status: StatusKey;
+  /** Unix epoch milliseconds when the report was submitted. */
+  ts: number;
+}
+
+export interface BoardData {
+  /** Most recent report, or null if nobody has reported yet. */
+  latest: Report | null;
+  /** Most recent reports, newest first (capped). */
+  reports: Report[];
+  /** Server time (epoch ms) so the client can compute "x min ago" against a trusted clock. */
+  now: number;
+}
+
+export const STATUS_ORDER: StatusKey[] = ["working", "broken", "full", "queue"];
+
+export interface StatusMeta {
+  key: StatusKey;
+  emoji: string;
+  /** Short label shown on the report button. */
+  label: string;
+  /** Sentence shown on the big status card. */
+  headline: string;
+  /** Tailwind classes for the status accent. */
+  ring: string;
+  bg: string;
+  text: string;
+  button: string;
+}
+
+export const STATUS_META: Record<StatusKey, StatusMeta> = {
+  working: {
+    key: "working",
+    emoji: "✅",
+    label: "Working",
+    headline: "The machine is working",
+    ring: "ring-emerald-400/40",
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-300",
+    button:
+      "bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-400/30 hover:bg-emerald-500/20 active:bg-emerald-500/30",
+  },
+  broken: {
+    key: "broken",
+    emoji: "❌",
+    label: "Not working",
+    headline: "The machine is not working",
+    ring: "ring-rose-400/40",
+    bg: "bg-rose-500/10",
+    text: "text-rose-300",
+    button:
+      "bg-rose-500/10 text-rose-200 ring-1 ring-rose-400/30 hover:bg-rose-500/20 active:bg-rose-500/30",
+  },
+  full: {
+    key: "full",
+    emoji: "🗑️",
+    label: "Bin full",
+    headline: "The bin is full",
+    ring: "ring-amber-400/40",
+    bg: "bg-amber-500/10",
+    text: "text-amber-300",
+    button:
+      "bg-amber-500/10 text-amber-200 ring-1 ring-amber-400/30 hover:bg-amber-500/20 active:bg-amber-500/30",
+  },
+  queue: {
+    key: "queue",
+    emoji: "⏳",
+    label: "Long queue",
+    headline: "It works, but there's a long queue",
+    ring: "ring-sky-400/40",
+    bg: "bg-sky-500/10",
+    text: "text-sky-300",
+    button:
+      "bg-sky-500/10 text-sky-200 ring-1 ring-sky-400/30 hover:bg-sky-500/20 active:bg-sky-500/30",
+  },
+};
+
+export function isStatusKey(value: unknown): value is StatusKey {
+  return (
+    typeof value === "string" &&
+    (STATUS_ORDER as string[]).includes(value)
+  );
+}
+
+/** A report older than this is shown with a "might be outdated" warning. */
+export const STALE_AFTER_MS = 2 * 60 * 60 * 1000; // 2 hours
