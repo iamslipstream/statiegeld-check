@@ -34,7 +34,7 @@ export default async function Home() {
           Our Domain Community
         </h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Neighbours&apos; bottle return status, marketplace &amp; short stays
+          Small things that make the building feel like home.
         </p>
       </header>
 
