@@ -3,9 +3,16 @@
 import { useCallback, useEffect, useState } from "react";
 
 /**
+ * The heatwave reminder auto-retires at 8 PM Amsterdam time on Mon 29 Jun 2026
+ * (CEST = UTC+2). After this instant the toast never shows again, so the
+ * feature switches itself off with no deploy needed.
+ */
+const EXPIRES_AT = Date.parse("2026-06-29T20:00:00+02:00");
+
+/**
  * A playful heat-advisory toast that slides in every time the app opens,
  * reminding neighbours to stay cool during the Amsterdam heat. Auto-dismisses
- * and can be closed manually.
+ * and can be closed manually. Stops showing for good after EXPIRES_AT.
  */
 export function HeatGreeting() {
   const [show, setShow] = useState(false);
@@ -17,6 +24,8 @@ export function HeatGreeting() {
   }, []);
 
   useEffect(() => {
+    if (Date.now() >= EXPIRES_AT) return;
+
     setShow(true);
     const t = window.setTimeout(dismiss, 11000);
     return () => window.clearTimeout(t);
