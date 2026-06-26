@@ -55,7 +55,7 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       {LOCATIONS.map((loc) => {
         const board = data.boards[loc.id] ?? EMPTY;
         const meta = board.latest ? STATUS_META[board.latest.status] : null;
@@ -67,34 +67,36 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
         return (
           <div
             key={loc.id}
-            className="flex flex-col gap-3 rounded-2xl bg-white/5 p-4 ring-1 ring-white/10"
+            className="flex flex-col gap-2.5 rounded-2xl bg-white/5 p-3.5 ring-1 ring-white/10"
           >
             {/* Machine name */}
             <p className="text-sm font-bold text-zinc-200">{loc.name}</p>
 
             {/* Current status */}
             <div
-              className={`rounded-xl p-3 text-center ring-1 ${
+              className={`flex items-center justify-center gap-2.5 rounded-xl px-3 py-2.5 text-center ring-1 ${
                 meta
                   ? `${meta.bg} ${meta.ring}`
                   : "bg-white/5 ring-white/10"
               }`}
             >
-              <span className="text-3xl" aria-hidden>
+              <span className="text-2xl leading-none" aria-hidden>
                 {meta ? meta.emoji : "🤷"}
               </span>
-              <p
-                className={`mt-1 text-sm font-semibold ${
-                  meta ? meta.text : "text-zinc-500"
-                }`}
-              >
-                {meta ? meta.headline : "No reports yet"}
-              </p>
-              {board.latest && (
-                <p className="mt-0.5 text-xs text-zinc-500">
-                  {timeAgo(board.latest.ts, data.now)}
+              <div className="text-left">
+                <p
+                  className={`text-sm font-semibold ${
+                    meta ? meta.text : "text-zinc-500"
+                  }`}
+                >
+                  {meta ? meta.headline : "No reports yet"}
                 </p>
-              )}
+                {board.latest && (
+                  <p className="text-xs text-zinc-500">
+                    {timeAgo(board.latest.ts, data.now)}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Report buttons — generous tap targets */}
@@ -103,9 +105,9 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
                 <button
                   key={s}
                   onClick={() => report(loc.id, s)}
-                  className={`flex flex-1 flex-col items-center gap-1.5 rounded-xl py-4 text-sm font-semibold transition-colors ${STATUS_META[s].button}`}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors ${STATUS_META[s].button}`}
                 >
-                  <span className="text-2xl" aria-hidden>
+                  <span className="text-lg" aria-hidden>
                     {STATUS_META[s].emoji}
                   </span>
                   <span>{STATUS_META[s].label}</span>
