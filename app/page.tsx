@@ -2,24 +2,33 @@ import { TabLayout } from "@/components/TabLayout";
 import { getAllBoards, isPersistent, incrementVisitors } from "@/lib/store";
 import { getListings } from "@/lib/marketplace-store";
 import { getRequests } from "@/lib/housing-store";
+import { getThreads } from "@/lib/threads-store";
+import { seasonalFlair } from "@/lib/seasonal";
 import type { AppData } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [boards, listings, requests, visitors] = await Promise.all([
-    getAllBoards(),
-    getListings(),
-    getRequests(),
-    incrementVisitors(),
-  ]);
+  const [boards, listings, requests, lostFound, recommendations, visitors] =
+    await Promise.all([
+      getAllBoards(),
+      getListings(),
+      getRequests(),
+      getThreads("lost-found"),
+      getThreads("recommendations"),
+      incrementVisitors(),
+    ]);
   const appData: AppData = { now: Date.now(), boards };
+  const flair = seasonalFlair();
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-4">
       <header className="py-5 text-center">
         <p className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-zinc-400 ring-1 ring-white/10">
           <span aria-hidden>📍</span> Our Domain South East
+          <span aria-hidden title={flair.label}>
+            {flair.emoji}
+          </span>
         </p>
         <h1 className="text-2xl font-bold tracking-tight text-zinc-100">
           Our Domain Community
@@ -29,7 +38,13 @@ export default async function Home() {
         </p>
       </header>
 
-      <TabLayout listings={listings} requests={requests} appData={appData} />
+      <TabLayout
+        listings={listings}
+        requests={requests}
+        lostFound={lostFound}
+        recommendations={recommendations}
+        appData={appData}
+      />
 
       <footer className="mt-2 border-t border-white/5 py-8 text-center">
         <p className="text-sm font-medium text-zinc-300">

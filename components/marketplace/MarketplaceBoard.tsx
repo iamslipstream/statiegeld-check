@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ListingCard } from "./ListingCard";
 import { ListingForm } from "./ListingForm";
+import { fireConfetti } from "@/lib/confetti";
 import type { Listing } from "@/lib/marketplace-store";
 
 const STORAGE_KEY = "od_my_listings";
@@ -32,6 +33,7 @@ export function MarketplaceBoard({ initial }: { initial: Listing[] }) {
   const handleCreated = (listing: Listing, token: string) => {
     setListings((prev) => [listing, ...prev]);
     setShowForm(false);
+    fireConfetti();
     setMyTokens((prev) => {
       const next = { ...prev, [listing.id]: token };
       saveMyListings(next);

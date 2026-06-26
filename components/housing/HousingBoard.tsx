@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { HousingCard } from "./HousingCard";
 import { HousingForm } from "./HousingForm";
+import { fireConfetti } from "@/lib/confetti";
 import type { HousingRequest } from "@/lib/housing-store";
 
 const STORAGE_KEY = "od_my_housing_requests";
@@ -32,6 +33,7 @@ export function HousingBoard({ initial }: { initial: HousingRequest[] }) {
   const handleCreated = (request: HousingRequest, token: string) => {
     setRequests((prev) => [request, ...prev]);
     setShowForm(false);
+    fireConfetti();
     setMyTokens((prev) => {
       const next = { ...prev, [request.id]: token };
       saveMine(next);
