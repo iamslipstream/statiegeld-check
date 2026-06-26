@@ -18,6 +18,49 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* ---- Heat greeting animations ---- */
+@keyframes heat-drop-in {
+  0% { opacity: 0; transform: translateY(-16px) scale(0.96); }
+  60% { opacity: 1; transform: translateY(3px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes heat-out {
+  to { opacity: 0; transform: translateY(-16px) scale(0.96); }
+}
+@keyframes heat-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(-6deg); }
+}
+@keyframes heat-wiggle {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(8deg); }
+}
+@keyframes heat-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes heat-spin {
+  to { transform: rotate(360deg); }
+}
+
+.heat-drop-in { animation: heat-drop-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.heat-leaving { animation: heat-out 0.35s ease-in forwards; }
+.heat-bob { animation: heat-bob 2.6s ease-in-out infinite; }
+.heat-wiggle { animation: heat-wiggle 1.6s ease-in-out infinite; display: inline-block; }
+.heat-spin-slow { animation: heat-spin 14s linear infinite; display: inline-block; }
+.heat-shimmer {
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.10) 40%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0.10) 60%,
+    transparent 80%
+  );
+  background-size: 200% 100%;
+  animation: heat-shimmer 3.5s ease-in-out infinite;
+}
+
 /* Respect users who prefer reduced motion. */
 @media (prefers-reduced-motion: reduce) {
   * {
