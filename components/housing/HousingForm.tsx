@@ -102,8 +102,8 @@ export function HousingForm({
       </h2>
       {!isEdit && (
         <p className="-mt-2 text-xs text-zinc-500">
-          Looking to stay in the building for a while? Post what you need and
-          neighbours with a free apartment can reach out.
+          Looking to stay for a while? Post what you need and neighbours with a
+          free apartment can reach out.
         </p>
       )}
 
