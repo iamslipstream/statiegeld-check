@@ -1,4 +1,4 @@
-export type StatusKey = "working" | "broken" | "full" | "queue";
+export type StatusKey = "working" | "broken";
 
 export interface Report {
   id: string;
@@ -51,7 +51,7 @@ export function locationName(id: string): string {
   return LOCATIONS.find((l) => l.id === id)?.name ?? id;
 }
 
-export const STATUS_ORDER: StatusKey[] = ["working", "broken", "full", "queue"];
+export const STATUS_ORDER: StatusKey[] = ["working", "broken"];
 
 export interface StatusMeta {
   key: StatusKey;
@@ -93,30 +93,6 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     button:
       "bg-rose-500/10 text-rose-200 ring-1 ring-rose-400/30 hover:bg-rose-500/20 active:bg-rose-500/30",
     dot: "bg-rose-400",
-  },
-  full: {
-    key: "full",
-    emoji: "🗑️",
-    label: "Bin full",
-    headline: "The bin is full",
-    ring: "ring-amber-400/40",
-    bg: "bg-amber-500/10",
-    text: "text-amber-300",
-    button:
-      "bg-amber-500/10 text-amber-200 ring-1 ring-amber-400/30 hover:bg-amber-500/20 active:bg-amber-500/30",
-    dot: "bg-amber-400",
-  },
-  queue: {
-    key: "queue",
-    emoji: "⏳",
-    label: "Long queue",
-    headline: "It works, but there's a long queue",
-    ring: "ring-sky-400/40",
-    bg: "bg-sky-500/10",
-    text: "text-sky-300",
-    button:
-      "bg-sky-500/10 text-sky-200 ring-1 ring-sky-400/30 hover:bg-sky-500/20 active:bg-sky-500/30",
-    dot: "bg-sky-400",
   },
 };
 

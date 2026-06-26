@@ -2,14 +2,14 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Bottle Return Check — Jumbo & Vomar machines",
+  title: "Our Domain Community — South East",
   description:
-    "Crowdsourced status of the bottle & can return (statiegeld) machines at the Jumbo and Vomar near Our Domain South East, Amsterdam. Check before you carry your bottles and cans down.",
-  applicationName: "Bottle Return Check",
+    "Two tools for Our Domain South East residents: a neighbours' marketplace to buy and sell second-hand items, and live bottle return machine status for Jumbo and Vomar.",
+  applicationName: "Our Domain Community",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Bottle Return Check",
+    title: "OD Community",
   },
 };
 
@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth">
       <body className="font-sans antialiased">{children}</body>
     </html>
   );

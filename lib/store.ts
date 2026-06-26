@@ -34,6 +34,7 @@ export const isPersistent = redis !== null;
 
 // In-memory fallback (dev only). One array per location, newest first.
 const memory: Record<string, Report[]> = {};
+let memoryVisitors = 0;
 
 function makeId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -86,6 +87,11 @@ export async function getAllBoards(): Promise<Record<string, LocationBoard>> {
     })
   );
   return Object.fromEntries(entries);
+}
+
+export async function incrementVisitors(): Promise<number> {
+  if (redis) return await redis.incr("visitors");
+  return ++memoryVisitors;
 }
 
 function safeParse(value: string): Report | null {
