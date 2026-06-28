@@ -62,6 +62,8 @@ export interface StatusMeta {
   headline: string;
   /** Tailwind classes for the status accent. */
   ring: string;
+  /** Left-border accent for the passive status panel. */
+  border: string;
   bg: string;
   text: string;
   button: string;
@@ -76,10 +78,11 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Working",
     headline: "The machine is working",
     ring: "ring-emerald-400/40",
+    border: "border-emerald-400/50",
     bg: "bg-emerald-500/10",
     text: "text-emerald-300",
     button:
-      "bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-400/30 hover:bg-emerald-500/20 active:bg-emerald-500/30",
+      "cursor-pointer bg-emerald-500 text-white shadow-lg shadow-emerald-900/40 ring-1 ring-emerald-400/60 hover:bg-emerald-400 active:scale-[0.97] active:bg-emerald-600",
     dot: "bg-emerald-400",
   },
   broken: {
@@ -88,10 +91,11 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Not working",
     headline: "The machine is not working",
     ring: "ring-rose-400/40",
+    border: "border-rose-400/50",
     bg: "bg-rose-500/10",
     text: "text-rose-300",
     button:
-      "bg-rose-500/10 text-rose-200 ring-1 ring-rose-400/30 hover:bg-rose-500/20 active:bg-rose-500/30",
+      "cursor-pointer bg-rose-500 text-white shadow-lg shadow-rose-900/40 ring-1 ring-rose-400/60 hover:bg-rose-400 active:scale-[0.97] active:bg-rose-600",
     dot: "bg-rose-400",
   },
 };

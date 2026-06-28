@@ -72,12 +72,12 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
             {/* Machine name */}
             <p className="text-sm font-bold text-zinc-200">{loc.name}</p>
 
-            {/* Current status */}
+            {/* Current status — passive info panel, deliberately not button-like */}
             <div
-              className={`flex items-center justify-center gap-2.5 rounded-xl px-3 py-2.5 text-center ring-1 ${
+              className={`flex items-center justify-center gap-2.5 rounded-xl border-l-2 px-3 py-2.5 text-center ${
                 meta
-                  ? `${meta.bg} ${meta.ring}`
-                  : "bg-white/5 ring-white/10"
+                  ? `${meta.bg} ${meta.border}`
+                  : "border-white/10 bg-white/5"
               }`}
             >
               <span className="text-2xl leading-none" aria-hidden>
@@ -99,7 +99,10 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
               </div>
             </div>
 
-            {/* Report buttons — generous tap targets */}
+            {/* Report prompt + buttons — generous tap targets */}
+            <p className="px-0.5 text-xs font-medium text-zinc-400">
+              Is it working right now? Tap to report:
+            </p>
             <div className="flex gap-2">
               {STATUS_ORDER.map((s) => (
                 <button
