@@ -64,18 +64,24 @@ export function HousingBoard({ initial }: { initial: HousingRequest[] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-500">
-          {requests.length === 0
-            ? "No requests yet"
-            : `${requests.length} ${requests.length !== 1 ? "people" : "person"} looking`}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-zinc-300">
+            {requests.length === 0
+              ? "No requests yet"
+              : `${requests.length} ${requests.length !== 1 ? "people" : "person"} looking for a short-term stay`}
+          </p>
+          <p className="mt-0.5 text-xs text-zinc-500">
+            Got a free room or apartment? Reach out to anyone below — no fees, no
+            middleman.
+          </p>
+        </div>
         <button
           onClick={() => {
             setEditing(null);
             setShowForm((s) => !s);
           }}
-          className={`rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
+          className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
             showForm
               ? "bg-white/10 text-zinc-300 hover:bg-white/15"
               : "bg-emerald-500 text-white hover:bg-emerald-400"
