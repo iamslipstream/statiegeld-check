@@ -177,7 +177,7 @@ export function HousingCard({
       {request.message && (
         <div>
           <p className="text-[11px] uppercase tracking-wide text-zinc-500">
-            About {firstName}
+            Note
           </p>
           <p className="mt-0.5 text-sm text-zinc-300">{request.message}</p>
         </div>

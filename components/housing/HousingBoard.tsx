@@ -72,8 +72,7 @@ export function HousingBoard({ initial }: { initial: HousingRequest[] }) {
               : `${requests.length} ${requests.length !== 1 ? "people" : "person"} looking for a short-term stay`}
           </p>
           <p className="mt-0.5 text-xs text-zinc-500">
-            Got a free room or apartment? Reach out to anyone below — no fees, no
-            middleman.
+            Got a free room or apartment? Reach out to anyone below.
           </p>
         </div>
         <button
