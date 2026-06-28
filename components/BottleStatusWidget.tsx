@@ -13,6 +13,28 @@ import { timeAgo, clockLabel } from "@/lib/time";
 const EMPTY: LocationBoard = { latest: null, reports: [] };
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
+/** Monochrome icon for the report buttons — inherits the button's text colour. */
+function ButtonIcon({ status }: { status: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {status === "working" ? (
+        <path d="M4 12.5l5 5L20 6.5" />
+      ) : (
+        <path d="M6 6l12 12M18 6L6 18" />
+      )}
+    </svg>
+  );
+}
+
 export function BottleStatusWidget({ initial }: { initial: AppData }) {
   const [data, setData] = useState<AppData>(initial);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -108,11 +130,9 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
                 <button
                   key={s}
                   onClick={() => report(loc.id, s)}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-colors ${STATUS_META[s].button}`}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all ${STATUS_META[s].button}`}
                 >
-                  <span className="text-lg" aria-hidden>
-                    {STATUS_META[s].emoji}
-                  </span>
+                  <ButtonIcon status={s} />
                   <span>{STATUS_META[s].label}</span>
                 </button>
               ))}

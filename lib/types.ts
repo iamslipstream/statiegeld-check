@@ -82,7 +82,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     bg: "bg-emerald-500/10",
     text: "text-emerald-300",
     button:
-      "cursor-pointer bg-emerald-500 text-white shadow-lg shadow-emerald-900/40 ring-1 ring-emerald-400/60 hover:bg-emerald-400 active:scale-[0.97] active:bg-emerald-600",
+      "cursor-pointer bg-emerald-600/90 text-emerald-50 shadow-sm shadow-black/30 ring-1 ring-inset ring-white/10 hover:bg-emerald-600 active:scale-[0.98] active:bg-emerald-700",
     dot: "bg-emerald-400",
   },
   broken: {
@@ -95,7 +95,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     bg: "bg-rose-500/10",
     text: "text-rose-300",
     button:
-      "cursor-pointer bg-rose-500 text-white shadow-lg shadow-rose-900/40 ring-1 ring-rose-400/60 hover:bg-rose-400 active:scale-[0.97] active:bg-rose-600",
+      "cursor-pointer bg-rose-600/90 text-rose-50 shadow-sm shadow-black/30 ring-1 ring-inset ring-white/10 hover:bg-rose-600 active:scale-[0.98] active:bg-rose-700",
     dot: "bg-rose-400",
   },
 };
