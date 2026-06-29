@@ -7,56 +7,32 @@ import {
   STATUS_ORDER,
   type AppData,
   type LocationBoard,
-  type StatusKey,
   type StatusMeta,
 } from "@/lib/types";
 import { timeAgo, clockLabel } from "@/lib/time";
 
 const EMPTY: LocationBoard = { latest: null, reports: [] };
 const ONE_HOUR_MS = 60 * 60 * 1000;
-/** How many of the most recent reports feed the live confidence signal. */
-const RECENT_WINDOW = 6;
 
 interface Signal {
-  /** Status accent (colours, emoji) for the computed majority. */
+  /** Status accent (colours, emoji) for the latest report. */
   meta: StatusMeta;
-  /** Human summary, e.g. "5 of the last 6 neighbours said working". */
+  /** Headline, e.g. "Working" or "Not working". */
   summary: string;
   /** Freshness dot colour, derived from how recent the newest report is. */
   dot: string;
 }
 
 /**
- * Derive a live signal from the most recent reports instead of trusting a
- * single (possibly stale) timestamp. The majority of the last few reports sets
- * the tint and headline; the newest report's age sets the freshness dot.
+ * Derive the signal straight from the most recent report — simple and
+ * unambiguous. The newest report sets the tint and headline; its age sets the
+ * freshness dot.
  */
 function computeSignal(board: LocationBoard, now: number): Signal | null {
   const latest = board.latest;
   if (!latest) return null;
 
-  const recent = board.reports.slice(0, RECENT_WINDOW);
-  const working = recent.filter((r) => r.status === "working").length;
-  const broken = recent.length - working;
-  // On a tie the newest report breaks it — the freshest read wins.
-  const majority: StatusKey =
-    working === broken
-      ? latest.status
-      : working > broken
-        ? "working"
-        : "broken";
-
-  const agree = majority === "working" ? working : broken;
-  const label = majority === "working" ? "working" : "not working";
-
-  let summary: string;
-  if (recent.length === 1) {
-    summary = `Last report says ${label}`;
-  } else if (agree === recent.length) {
-    summary = `All ${recent.length} recent reports say ${label}`;
-  } else {
-    summary = `${agree} of the last ${recent.length} neighbours said ${label}`;
-  }
+  const meta = STATUS_META[latest.status];
 
   const age = now - latest.ts;
   const dot =
@@ -66,7 +42,7 @@ function computeSignal(board: LocationBoard, now: number): Signal | null {
         ? "bg-amber-400"
         : "bg-zinc-500";
 
-  return { meta: STATUS_META[majority], summary, dot };
+  return { meta, summary: meta.label, dot };
 }
 
 /** Monochrome icon for the report buttons — inherits the button's text colour. */
