@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { compressImage } from "@/lib/image";
+import { FormReassurance } from "@/components/FormReassurance";
 import type { Thread, ThreadCategory } from "@/lib/threads-store";
 import type { ThreadConfig } from "./config";
 
@@ -12,7 +13,7 @@ function makeToken(): string {
 }
 
 const fieldClass =
-  "rounded-xl bg-white/5 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 ring-1 ring-white/10 focus:outline-none focus:ring-emerald-400/50";
+  "rounded-xl bg-white/5 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 ring-1 ring-white/10 focus:outline-none focus:ring-emerald-400/50";
 
 export function ThreadForm({
   category,
@@ -27,7 +28,12 @@ export function ThreadForm({
   const [error, setError] = useState<string | null>(null);
   const [kind, setKind] = useState<"lost" | "found">("lost");
   const [preview, setPreview] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [titleTouched, setTitleTouched] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const titleOk = title.trim().length > 0;
+  const canSubmit = titleOk && !submitting;
 
   const handleImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,6 +53,9 @@ export function ThreadForm({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setTitleTouched(true);
+    if (!canSubmit) return;
+
     setError(null);
     setSubmitting(true);
 
@@ -57,7 +66,7 @@ export function ThreadForm({
       const payload = {
         category,
         kind: config.showKind ? kind : "",
-        title: fd.get("title"),
+        title: title.trim(),
         body: fd.get("body"),
         author: fd.get("author"),
         phone: fd.get("phone"),
@@ -84,6 +93,8 @@ export function ThreadForm({
       form.reset();
       setKind("lost");
       setPreview(null);
+      setTitle("");
+      setTitleTouched(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not post.");
     } finally {
@@ -98,7 +109,10 @@ export function ThreadForm({
     >
       <div>
         <h2 className="text-lg font-semibold text-zinc-100">{config.formTitle}</h2>
-        <p className="mt-1 text-xs text-zinc-500">{config.formIntro}</p>
+        <p className="mt-1 text-xs text-zinc-400">{config.formIntro}</p>
+        <div className="mt-1.5">
+          <FormReassurance />
+        </div>
       </div>
 
       {config.showKind && (
@@ -129,11 +143,17 @@ export function ThreadForm({
         <input
           id="title"
           name="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onBlur={() => setTitleTouched(true)}
           type="text"
-          required
+          aria-invalid={titleTouched && !titleOk}
           placeholder={config.titlePlaceholder}
           className={fieldClass}
         />
+        {titleTouched && !titleOk && (
+          <p className="text-xs text-rose-300">Please fill this in.</p>
+        )}
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -200,7 +220,7 @@ export function ThreadForm({
           <span className="text-sm font-medium text-zinc-300">
             How can people reach you?
           </span>
-          <p className="text-xs text-zinc-500">Optional — replies work too.</p>
+          <p className="text-xs text-zinc-400">Optional — replies work too.</p>
           <input
             name="phone"
             type="text"
@@ -224,7 +244,7 @@ export function ThreadForm({
 
       <button
         type="submit"
-        disabled={submitting}
+        disabled={!canSubmit}
         className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-white hover:bg-emerald-400 active:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {submitting ? "Posting…" : config.submitLabel}

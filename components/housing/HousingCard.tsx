@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { ContactReveal } from "@/components/ContactReveal";
+import { splitContact } from "@/lib/contact";
 import type { HousingRequest } from "@/lib/housing-store";
 
 function formatDate(
@@ -65,14 +67,6 @@ function formatGuests(value: string): string {
   return v;
 }
 
-/** Split the stored "phone · email" contact string into its parts. */
-function splitContact(contact: string): { phone: string; email: string } {
-  const parts = contact.split(" · ");
-  const email = parts.find((p) => p.includes("@")) ?? "";
-  const phone = parts.find((p) => p && !p.includes("@")) ?? "";
-  return { phone, email };
-}
-
 export function HousingCard({
   request,
   token,
@@ -121,10 +115,10 @@ export function HousingCard({
         <div className="min-w-0">
           <h3 className="font-semibold text-zinc-100 leading-tight">{request.name}</h3>
           {request.profession && (
-            <p className="text-xs text-zinc-500">{request.profession}</p>
+            <p className="text-xs text-zinc-400">{request.profession}</p>
           )}
         </div>
-        <span className="shrink-0 text-xs text-zinc-600">{timeAgo()}</span>
+        <span className="shrink-0 text-xs text-zinc-400">{timeAgo()}</span>
       </div>
 
       {/* When — the headline of the request */}
@@ -153,7 +147,7 @@ export function HousingCard({
       <div className="grid grid-cols-2 gap-2">
         {request.guests && (
           <div className="rounded-xl bg-white/[0.03] px-3 py-2 ring-1 ring-white/5">
-            <p className="text-[11px] uppercase tracking-wide text-zinc-500">
+            <p className="text-[11px] uppercase tracking-wide text-zinc-400">
               Guests
             </p>
             <p className="mt-0.5 text-sm text-zinc-200">
@@ -163,7 +157,7 @@ export function HousingCard({
         )}
         {request.budget && (
           <div className="rounded-xl bg-white/[0.03] px-3 py-2 ring-1 ring-white/5">
-            <p className="text-[11px] uppercase tracking-wide text-zinc-500">
+            <p className="text-[11px] uppercase tracking-wide text-zinc-400">
               Budget
             </p>
             <p className="mt-0.5 text-sm text-zinc-200">
@@ -176,36 +170,25 @@ export function HousingCard({
       {/* Their note */}
       {request.message && (
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-zinc-500">
+          <p className="text-[11px] uppercase tracking-wide text-zinc-400">
             Note
           </p>
           <p className="mt-0.5 text-sm text-zinc-300">{request.message}</p>
         </div>
       )}
 
-      {/* Contact — one-tap actions for the host */}
+      {/* Contact — opt-in reveal, then one-tap call/mail + copy */}
       {(phone || email) && (
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-zinc-500">
+          <p className="text-[11px] uppercase tracking-wide text-zinc-400">
             Reach {firstName}
           </p>
-          <div className="mt-1.5 flex flex-wrap gap-2">
-            {phone && (
-              <a
-                href={`tel:${phone.replace(/\s+/g, "")}`}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-200 ring-1 ring-emerald-400/25 transition-colors hover:bg-emerald-500/20"
-              >
-                📞 Call {phone}
-              </a>
-            )}
-            {email && (
-              <a
-                href={`mailto:${email}`}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-sky-500/10 px-3 py-2 text-sm font-medium text-sky-200 ring-1 ring-sky-400/25 transition-colors hover:bg-sky-500/20"
-              >
-                ✉️ Email
-              </a>
-            )}
+          <div className="mt-1.5">
+            <ContactReveal
+              phone={phone}
+              email={email}
+              label={`Contact ${firstName}`}
+            />
           </div>
         </div>
       )}
@@ -222,7 +205,7 @@ export function HousingCard({
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="flex-1 rounded-xl py-1.5 text-xs text-zinc-600 ring-1 ring-white/10 hover:bg-rose-500/10 hover:text-rose-400 hover:ring-rose-400/20 transition-colors disabled:opacity-40"
+            className="flex-1 rounded-xl py-1.5 text-xs text-zinc-400 ring-1 ring-white/10 hover:bg-rose-500/10 hover:text-rose-400 hover:ring-rose-400/20 transition-colors disabled:opacity-40"
           >
             {deleting ? "Removing…" : "Remove"}
           </button>

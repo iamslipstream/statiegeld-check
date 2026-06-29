@@ -89,7 +89,7 @@ export function ThreadCard({
             )}
             <h3 className="font-semibold text-zinc-100 leading-tight">{thread.title}</h3>
           </div>
-          <p className="mt-0.5 text-xs text-zinc-500">
+          <p className="mt-0.5 text-xs text-zinc-400">
             {thread.author ? `${thread.author} · ` : ""}
             {timeAgo(thread.ts)}
           </p>
@@ -118,7 +118,7 @@ export function ThreadCard({
           {thread.replies.map((r) => (
             <li key={r.id} className="text-sm">
               <p className="text-zinc-300">{r.body}</p>
-              <p className="text-xs text-zinc-600">
+              <p className="text-xs text-zinc-400">
                 {r.author ? `${r.author} · ` : ""}
                 {timeAgo(r.ts)}
               </p>
@@ -139,7 +139,7 @@ export function ThreadCard({
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="ml-auto rounded-xl px-3 py-1.5 text-xs text-zinc-600 ring-1 ring-white/10 hover:bg-rose-500/10 hover:text-rose-400 hover:ring-rose-400/20 transition-colors disabled:opacity-40"
+            className="ml-auto rounded-xl px-3 py-1.5 text-xs text-zinc-400 ring-1 ring-white/10 hover:bg-rose-500/10 hover:text-rose-400 hover:ring-rose-400/20 transition-colors disabled:opacity-40"
           >
             {deleting ? "Removing…" : "Remove"}
           </button>

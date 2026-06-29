@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ThreadForm } from "./ThreadForm";
 import { ThreadCard } from "./ThreadCard";
 import { THREAD_CONFIG } from "./config";
+import { EmptyState } from "@/components/EmptyState";
+import { SuccessNote } from "@/components/SuccessNote";
 import { fireConfetti } from "@/lib/confetti";
+import { countLabel } from "@/lib/copy";
 import type { Thread, ThreadCategory } from "@/lib/threads-store";
 
 function loadMine(key: string): Record<string, string> {
@@ -29,21 +32,35 @@ export function ThreadBoard({
   const config = THREAD_CONFIG[category];
   const [threads, setThreads] = useState<Thread[]>(initial);
   const [showForm, setShowForm] = useState(false);
+  const [posted, setPosted] = useState(false);
   const [myTokens, setMyTokens] = useState<Record<string, string>>({});
+
+  const formRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMyTokens(loadMine(config.storageKey));
   }, [config.storageKey]);
 
+  useEffect(() => {
+    if (showForm) {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [showForm]);
+
   const handleCreated = (thread: Thread, token: string) => {
     setThreads((prev) => [thread, ...prev]);
     setShowForm(false);
+    setPosted(true);
     fireConfetti();
     setMyTokens((prev) => {
       const next = { ...prev, [thread.id]: token };
       saveMine(config.storageKey, next);
       return next;
     });
+    requestAnimationFrame(() =>
+      listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    );
   };
 
   const handleUpdated = (thread: Thread) => {
@@ -63,8 +80,13 @@ export function ThreadBoard({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-500">
-          {threads.length === 0 ? "Nothing yet" : config.count(threads.length)}
+        <p className="text-sm text-zinc-400">
+          {countLabel(
+            threads.length,
+            config.countOne,
+            config.countMany,
+            config.countZero
+          )}
         </p>
         <button
           onClick={() => setShowForm((s) => !s)}
@@ -78,26 +100,28 @@ export function ThreadBoard({
         </button>
       </div>
 
+      {posted && (
+        <SuccessNote
+          message={config.successNote}
+          onDismiss={() => setPosted(false)}
+        />
+      )}
+
       {showForm && (
-        <ThreadForm category={category} config={config} onCreated={handleCreated} />
+        <div ref={formRef}>
+          <ThreadForm category={category} config={config} onCreated={handleCreated} />
+        </div>
       )}
 
       {threads.length === 0 && !showForm ? (
-        <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-10 text-center">
-          <div className="text-5xl">{config.emptyEmoji}</div>
-          <h3 className="mt-3 text-lg font-semibold text-zinc-200">
-            {config.emptyTitle}
-          </h3>
-          <p className="mt-1 text-sm text-zinc-500">{config.emptyText}</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="mt-5 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-400 transition-colors"
-          >
-            {config.emptyCta}
-          </button>
-        </div>
+        <EmptyState
+          emoji={config.emptyEmoji}
+          title={config.emptyTitle}
+          text={config.emptyText}
+          cta={{ label: config.emptyCta, onClick: () => setShowForm(true) }}
+        />
       ) : (
-        <div className="flex flex-col gap-4">
+        <div ref={listRef} className="flex flex-col gap-4">
           {threads.map((thread) => (
             <ThreadCard
               key={thread.id}

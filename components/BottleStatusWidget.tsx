@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   LOCATIONS,
   STATUS_META,
@@ -94,27 +94,96 @@ function ButtonIcon({ status }: { status: string }) {
 export function BottleStatusWidget({ initial }: { initial: AppData }) {
   const [data, setData] = useState<AppData>(initial);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [syncedAt, setSyncedAt] = useState(initial.now);
+  const [clientNow, setClientNow] = useState(initial.now);
+  const [refreshing, setRefreshing] = useState(false);
+  const [pull, setPull] = useState(0);
+  const [pulling, setPulling] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const refresh = useCallback(async () => {
     try {
       const res = await fetch("/api/reports", { cache: "no-store" });
-      if (res.ok) setData((await res.json()) as AppData);
+      if (res.ok) {
+        setData((await res.json()) as AppData);
+        setSyncedAt(Date.now());
+      }
     } catch {
       /* keep last good data */
     }
   }, []);
 
+  const triggerRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refresh();
+    setClientNow(Date.now());
+    setRefreshing(false);
+  }, [refresh]);
+
+  // Auto-refresh: poll, refresh on tab focus, and keep the label ticking.
   useEffect(() => {
-    const id = setInterval(refresh, 60_000);
+    const poll = setInterval(refresh, 60_000);
+    const tick = setInterval(() => setClientNow(Date.now()), 30_000);
     const onVisible = () => {
       if (document.visibilityState === "visible") refresh();
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
-      clearInterval(id);
+      clearInterval(poll);
+      clearInterval(tick);
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [refresh]);
+
+  // Pull-to-refresh (mobile) — engages only when scrolled to the top.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const THRESHOLD = 64;
+    let startY = 0;
+    let active = false;
+    const onStart = (e: TouchEvent) => {
+      if (window.scrollY > 0) return;
+      startY = e.touches[0].clientY;
+      active = true;
+      setPulling(true);
+    };
+    const onMove = (e: TouchEvent) => {
+      if (!active) return;
+      if (window.scrollY > 0) {
+        active = false;
+        setPulling(false);
+        setPull(0);
+        return;
+      }
+      const delta = e.touches[0].clientY - startY;
+      if (delta <= 0) {
+        setPull(0);
+        return;
+      }
+      e.preventDefault();
+      setPull(Math.min(delta * 0.5, THRESHOLD + 16));
+    };
+    const onEnd = () => {
+      if (!active) return;
+      active = false;
+      setPulling(false);
+      setPull((p) => {
+        if (p >= THRESHOLD) void triggerRefresh();
+        return 0;
+      });
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd);
+    el.addEventListener("touchcancel", onEnd);
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+      el.removeEventListener("touchcancel", onEnd);
+    };
+  }, [triggerRefresh]);
 
   const report = async (locationId: string, status: string) => {
     try {
@@ -133,8 +202,43 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
-    <div className="flex flex-col gap-3">
-      {LOCATIONS.map((loc) => {
+    <div ref={containerRef}>
+      {/* Pull-to-refresh indicator (mobile) */}
+      <div
+        className={`overflow-hidden ${
+          pulling ? "" : "transition-[height] duration-200 ease-out"
+        }`}
+        style={{ height: pull }}
+        aria-hidden
+      >
+        <div className="flex h-full items-center justify-center text-xs text-zinc-400">
+          {pull >= 64 ? "↑ Release to refresh" : "↓ Pull to refresh"}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {/* Freshness + manual refresh */}
+        <div className="flex items-center justify-between px-0.5">
+          <span className="text-xs text-zinc-400">
+            Updated {timeAgo(syncedAt, clientNow)}
+          </span>
+          <button
+            type="button"
+            onClick={triggerRefresh}
+            disabled={refreshing}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-zinc-300 ring-1 ring-white/10 transition-colors hover:bg-white/5 hover:text-zinc-100 disabled:opacity-50"
+          >
+            <span
+              className={refreshing ? "inline-block animate-spin" : ""}
+              aria-hidden
+            >
+              ↻
+            </span>
+            {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+
+        {LOCATIONS.map((loc) => {
         const board = data.boards[loc.id] ?? EMPTY;
         const signal = computeSignal(board, data.now);
         const recentCount = board.reports.filter(
@@ -205,7 +309,7 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
               <div>
                 <button
                   onClick={() => toggle(loc.id)}
-                  className="flex w-full items-center justify-between py-1 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+                  className="flex w-full items-center justify-between py-1 text-xs text-zinc-400 transition-colors hover:text-zinc-300"
                 >
                   <span>
                     {recentCount > 0
@@ -230,7 +334,7 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
                           <span className={`font-medium ${rm.text}`}>
                             {rm.label}
                           </span>
-                          <span className="ml-auto tabular-nums text-zinc-600">
+                          <span className="ml-auto tabular-nums text-zinc-400">
                             {clockLabel(r.ts)}
                           </span>
                         </li>
@@ -242,7 +346,8 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
             )}
           </div>
         );
-      })}
+        })}
+      </div>
     </div>
   );
 }

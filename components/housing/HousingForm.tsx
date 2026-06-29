@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { splitContact } from "@/lib/contact";
+import { FormReassurance } from "@/components/FormReassurance";
 import type { HousingRequest } from "@/lib/housing-store";
 
 function makeToken(): string {
@@ -9,16 +11,10 @@ function makeToken(): string {
     .join("");
 }
 
-/** Split a stored "phone · email" contact string back into its parts. */
-function splitContact(contact: string): { phone: string; email: string } {
-  const parts = contact.split(" · ");
-  const email = parts.find((p) => p.includes("@")) ?? "";
-  const phone = parts.find((p) => p && !p.includes("@")) ?? "";
-  return { phone, email };
-}
-
 const fieldClass =
-  "rounded-xl bg-white/5 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 ring-1 ring-white/10 focus:outline-none focus:ring-emerald-400/50";
+  "rounded-xl bg-white/5 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 ring-1 ring-white/10 focus:outline-none focus:ring-emerald-400/50";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function HousingForm({
   request,
@@ -36,30 +32,58 @@ export function HousingForm({
   const isEdit = Boolean(request && editToken);
   const existing = request ? splitContact(request.contact) : null;
 
+  const [name, setName] = useState(request?.name ?? "");
+  const [fromDate, setFromDate] = useState(request?.fromDate ?? "");
+  const [toDate, setToDate] = useState(request?.toDate ?? "");
+  const [flexible, setFlexible] = useState(request?.flexible ?? false);
+  const [profession, setProfession] = useState(request?.profession ?? "");
+  const [guests, setGuests] = useState(request?.guests ?? "");
+  const [budget, setBudget] = useState(request?.budget ?? "");
+  const [message, setMessage] = useState(request?.message ?? "");
+  const [phone, setPhone] = useState(existing?.phone ?? "");
+  const [email, setEmail] = useState(existing?.email ?? "");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [flexible, setFlexible] = useState(request?.flexible ?? false);
+
+  const nameOk = name.trim().length > 0;
+  const fromOk = fromDate !== "";
+  const toOk = toDate !== "";
+  const orderOk = !fromOk || !toOk || toDate >= fromDate;
+  const emailOk = email.trim() === "" || EMAIL_RE.test(email.trim());
+  const hasContact = phone.trim() !== "" || email.trim() !== "";
+  const canSubmit =
+    nameOk && fromOk && toOk && orderOk && emailOk && hasContact && !submitting;
+
+  const touch = (k: string) => setTouched((t) => ({ ...t, [k]: true }));
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setTouched({
+      name: true,
+      fromDate: true,
+      toDate: true,
+      contact: true,
+      email: true,
+    });
+    if (!canSubmit) return;
+
     setError(null);
     setSubmitting(true);
-
     const token = isEdit ? (editToken as string) : makeToken();
     try {
-      const form = e.currentTarget;
-      const fd = new FormData(form);
       const payload = {
-        name: fd.get("name"),
-        fromDate: fd.get("fromDate"),
-        toDate: fd.get("toDate"),
+        name: name.trim(),
+        fromDate,
+        toDate,
         flexible,
-        profession: fd.get("profession"),
-        guests: fd.get("guests"),
-        budget: fd.get("budget"),
-        message: fd.get("message"),
-        phone: fd.get("phone"),
-        email: fd.get("email"),
+        profession: profession.trim(),
+        guests: guests.trim(),
+        budget: budget.trim(),
+        message: message.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
         token,
       };
       const res = await fetch(
@@ -81,13 +105,10 @@ export function HousingForm({
         throw new Error(body.error ?? "Something went wrong. Please try again.");
       }
       onSaved(body as HousingRequest, token);
-      if (!isEdit) {
-        form.reset();
-        setFlexible(false);
-      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save your request.");
-    } finally {
+      setError(
+        err instanceof Error ? err.message : "Could not save your request."
+      );
       setSubmitting(false);
     }
   };
@@ -95,17 +116,23 @@ export function HousingForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5 flex flex-col gap-4"
+      noValidate
+      className="flex flex-col gap-4 rounded-2xl bg-white/5 p-5 ring-1 ring-white/10"
     >
-      <h2 className="text-lg font-semibold text-zinc-100">
-        {isEdit ? "Edit your request" : "Request a short-term place"}
-      </h2>
-      {!isEdit && (
-        <p className="-mt-2 text-xs text-zinc-500">
-          Looking to stay for a while? Post what you need and neighbours with a
-          free apartment can reach out.
-        </p>
-      )}
+      <div>
+        <h2 className="text-lg font-semibold text-zinc-100">
+          {isEdit ? "Edit your request" : "Request a short-term place"}
+        </h2>
+        {!isEdit && (
+          <p className="mt-1 text-xs text-zinc-400">
+            Looking to stay for a while? Post what you need and neighbours with a
+            free apartment can reach out.
+          </p>
+        )}
+        <div className="mt-1.5">
+          <FormReassurance />
+        </div>
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-zinc-300" htmlFor="name">
@@ -113,42 +140,67 @@ export function HousingForm({
         </label>
         <input
           id="name"
-          name="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={() => touch("name")}
           type="text"
-          required
-          defaultValue={request?.name ?? ""}
+          aria-invalid={touched.name && !nameOk}
           placeholder="e.g. Sam"
           className={fieldClass}
         />
+        {touched.name && !nameOk && (
+          <p className="text-xs text-rose-300">Please add your name.</p>
+        )}
       </div>
 
-      <div className="flex gap-3">
-        <div className="flex flex-col gap-1.5 flex-1">
-          <label className="text-sm font-medium text-zinc-300" htmlFor="fromDate">
-            From <span className="text-rose-400">*</span>
-          </label>
-          <input
-            id="fromDate"
-            name="fromDate"
-            type="date"
-            required
-            defaultValue={request?.fromDate ?? ""}
-            className={`${fieldClass} [color-scheme:dark]`}
-          />
+      <div className="flex flex-col gap-1.5">
+        <div className="flex gap-3">
+          <div className="flex flex-1 flex-col gap-1.5">
+            <label
+              className="text-sm font-medium text-zinc-300"
+              htmlFor="fromDate"
+            >
+              From <span className="text-rose-400">*</span>
+            </label>
+            <input
+              id="fromDate"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              onBlur={() => touch("fromDate")}
+              type="date"
+              aria-invalid={touched.fromDate && !fromOk}
+              className={`${fieldClass} [color-scheme:dark]`}
+            />
+          </div>
+          <div className="flex flex-1 flex-col gap-1.5">
+            <label
+              className="text-sm font-medium text-zinc-300"
+              htmlFor="toDate"
+            >
+              To <span className="text-rose-400">*</span>
+            </label>
+            <input
+              id="toDate"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              onBlur={() => touch("toDate")}
+              type="date"
+              aria-invalid={touched.toDate && (!toOk || !orderOk)}
+              className={`${fieldClass} [color-scheme:dark]`}
+            />
+          </div>
         </div>
-        <div className="flex flex-col gap-1.5 flex-1">
-          <label className="text-sm font-medium text-zinc-300" htmlFor="toDate">
-            To <span className="text-rose-400">*</span>
-          </label>
-          <input
-            id="toDate"
-            name="toDate"
-            type="date"
-            required
-            defaultValue={request?.toDate ?? ""}
-            className={`${fieldClass} [color-scheme:dark]`}
-          />
-        </div>
+        {touched.fromDate && !fromOk && (
+          <p className="text-xs text-rose-300">Pick a start date.</p>
+        )}
+        {touched.toDate && !toOk && (
+          <p className="text-xs text-rose-300">Pick an end date.</p>
+        )}
+        {toOk && fromOk && !orderOk && (
+          <p className="text-xs text-rose-300">
+            The end date is before the start date.
+          </p>
+        )}
       </div>
 
       <label className="flex cursor-pointer items-center gap-2.5 text-sm text-zinc-300">
@@ -162,28 +214,31 @@ export function HousingForm({
       </label>
 
       <div className="flex gap-3">
-        <div className="flex flex-col gap-1.5 flex-1">
-          <label className="text-sm font-medium text-zinc-300" htmlFor="profession">
+        <div className="flex flex-1 flex-col gap-1.5">
+          <label
+            className="text-sm font-medium text-zinc-300"
+            htmlFor="profession"
+          >
             Profession
           </label>
           <input
             id="profession"
-            name="profession"
+            value={profession}
+            onChange={(e) => setProfession(e.target.value)}
             type="text"
-            defaultValue={request?.profession ?? ""}
             placeholder="e.g. Nurse, Student…"
             className={fieldClass}
           />
         </div>
-        <div className="flex flex-col gap-1.5 flex-1">
+        <div className="flex flex-1 flex-col gap-1.5">
           <label className="text-sm font-medium text-zinc-300" htmlFor="guests">
             People
           </label>
           <input
             id="guests"
-            name="guests"
+            value={guests}
+            onChange={(e) => setGuests(e.target.value)}
             type="text"
-            defaultValue={request?.guests ?? ""}
             placeholder="e.g. 2 adults"
             className={fieldClass}
           />
@@ -196,9 +251,9 @@ export function HousingForm({
         </label>
         <input
           id="budget"
-          name="budget"
+          value={budget}
+          onChange={(e) => setBudget(e.target.value)}
           type="text"
-          defaultValue={request?.budget ?? ""}
           placeholder="e.g. €1200 / month"
           className={fieldClass}
         />
@@ -210,9 +265,9 @@ export function HousingForm({
         </label>
         <textarea
           id="message"
-          name="message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
           rows={2}
-          defaultValue={request?.message ?? ""}
           placeholder="A bit about you, why you need a place, pets, etc."
           className={`${fieldClass} resize-none`}
         />
@@ -222,21 +277,38 @@ export function HousingForm({
         <span className="text-sm font-medium text-zinc-300">
           How can people reach you? <span className="text-rose-400">*</span>
         </span>
-        <p className="text-xs text-zinc-500">Add at least one.</p>
+        <p
+          className={`text-xs ${
+            touched.contact && !hasContact ? "text-rose-300" : "text-zinc-400"
+          }`}
+        >
+          {touched.contact && !hasContact
+            ? "Add a phone number or email so hosts can reach you."
+            : "Add at least one."}
+        </p>
         <input
-          name="phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          onBlur={() => touch("contact")}
           type="text"
-          defaultValue={existing?.phone ?? ""}
+          inputMode="tel"
           placeholder="Phone number (e.g. 06 12345678)"
           className={fieldClass}
         />
         <input
-          name="email"
-          type="text"
-          defaultValue={existing?.email ?? ""}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onBlur={() => {
+            touch("contact");
+            touch("email");
+          }}
+          type="email"
           placeholder="Email address"
           className={fieldClass}
         />
+        {touched.email && !emailOk && (
+          <p className="text-xs text-rose-300">That email doesn’t look right.</p>
+        )}
       </div>
 
       {error && (
@@ -250,28 +322,24 @@ export function HousingForm({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-zinc-300 hover:bg-white/15 transition-colors"
+            className="rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/15"
           >
             Cancel
           </button>
         )}
         <button
           type="submit"
-          disabled={submitting}
-          className="flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-white hover:bg-emerald-400 active:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!canSubmit}
+          className="flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-400 active:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {submitting
-            ? "Saving…"
-            : isEdit
-              ? "Save changes"
-              : "Post request"}
+          {submitting ? "Saving…" : isEdit ? "Save changes" : "Post request"}
         </button>
       </div>
 
       {!isEdit && (
-        <p className="text-center text-xs text-zinc-600">
+        <p className="text-center text-xs text-zinc-400">
           Fields marked <span className="text-rose-400">*</span> are required ·
-          No login · Only you can edit or remove your request
+          Only you can edit or remove your request
         </p>
       )}
     </form>

@@ -22,7 +22,12 @@ export interface ThreadConfig {
   emptyTitle: string;
   emptyText: string;
   emptyCta: string;
-  count: (n: number) => string;
+  /** Count-label parts: noun (singular), noun (plural), and the zero-state phrase. */
+  countOne: string;
+  countMany: string;
+  countZero: string;
+  /** Confirmation shown after a successful post. */
+  successNote: string;
 }
 
 export const THREAD_CONFIG: Record<ThreadCategory, ThreadConfig> = {
@@ -46,7 +51,10 @@ export const THREAD_CONFIG: Record<ThreadCategory, ThreadConfig> = {
     emptyText:
       "Dropped your keys or found a stray glove in the lobby? Post it here.",
     emptyCta: "Post the first item",
-    count: (n) => `${n} ${n === 1 ? "item" : "items"}`,
+    countOne: "item",
+    countMany: "items",
+    countZero: "Nothing lost or found yet",
+    successNote: "Posted — neighbours can see it now",
   },
   recommendations: {
     storageKey: "od_my_recommendations",
@@ -68,6 +76,9 @@ export const THREAD_CONFIG: Record<ThreadCategory, ThreadConfig> = {
     emptyText:
       "Need a recommendation? Ask the neighbourhood — someone always knows a guy.",
     emptyCta: "Ask the first question",
-    count: (n) => `${n} ${n === 1 ? "question" : "questions"}`,
+    countOne: "question",
+    countMany: "questions",
+    countZero: "No questions yet",
+    successNote: "Your question is live — neighbours can chime in",
   },
 };
