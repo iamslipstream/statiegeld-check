@@ -7,11 +7,67 @@ import {
   STATUS_ORDER,
   type AppData,
   type LocationBoard,
+  type StatusKey,
+  type StatusMeta,
 } from "@/lib/types";
 import { timeAgo, clockLabel } from "@/lib/time";
 
 const EMPTY: LocationBoard = { latest: null, reports: [] };
 const ONE_HOUR_MS = 60 * 60 * 1000;
+/** How many of the most recent reports feed the live confidence signal. */
+const RECENT_WINDOW = 6;
+
+interface Signal {
+  /** Status accent (colours, emoji) for the computed majority. */
+  meta: StatusMeta;
+  /** Human summary, e.g. "5 of the last 6 neighbours said working". */
+  summary: string;
+  /** Freshness dot colour, derived from how recent the newest report is. */
+  dot: string;
+}
+
+/**
+ * Derive a live signal from the most recent reports instead of trusting a
+ * single (possibly stale) timestamp. The majority of the last few reports sets
+ * the tint and headline; the newest report's age sets the freshness dot.
+ */
+function computeSignal(board: LocationBoard, now: number): Signal | null {
+  const latest = board.latest;
+  if (!latest) return null;
+
+  const recent = board.reports.slice(0, RECENT_WINDOW);
+  const working = recent.filter((r) => r.status === "working").length;
+  const broken = recent.length - working;
+  // On a tie the newest report breaks it — the freshest read wins.
+  const majority: StatusKey =
+    working === broken
+      ? latest.status
+      : working > broken
+        ? "working"
+        : "broken";
+
+  const agree = majority === "working" ? working : broken;
+  const label = majority === "working" ? "working" : "not working";
+
+  let summary: string;
+  if (recent.length === 1) {
+    summary = `Last report says ${label}`;
+  } else if (agree === recent.length) {
+    summary = `All ${recent.length} recent reports say ${label}`;
+  } else {
+    summary = `${agree} of the last ${recent.length} neighbours said ${label}`;
+  }
+
+  const age = now - latest.ts;
+  const dot =
+    age < ONE_HOUR_MS
+      ? "bg-emerald-400"
+      : age < 6 * ONE_HOUR_MS
+        ? "bg-amber-400"
+        : "bg-zinc-500";
+
+  return { meta: STATUS_META[majority], summary, dot };
+}
 
 /** Monochrome icon for the report buttons — inherits the button's text colour. */
 function ButtonIcon({ status }: { status: string }) {
@@ -80,7 +136,7 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
     <div className="flex flex-col gap-3">
       {LOCATIONS.map((loc) => {
         const board = data.boards[loc.id] ?? EMPTY;
-        const meta = board.latest ? STATUS_META[board.latest.status] : null;
+        const signal = computeSignal(board, data.now);
         const recentCount = board.reports.filter(
           (r) => data.now - r.ts < ONE_HOUR_MS
         ).length;
@@ -94,28 +150,34 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
             {/* Machine name */}
             <p className="text-sm font-bold text-zinc-200">{loc.name}</p>
 
-            {/* Current status — passive info panel, deliberately not button-like */}
+            {/* Live confidence signal — majority of the most recent reports,
+                not a single (possibly stale) report. */}
             <div
               className={`flex items-center justify-center gap-2.5 rounded-xl border-l-2 px-3 py-2.5 text-center ${
-                meta
-                  ? `${meta.bg} ${meta.border}`
+                signal
+                  ? `${signal.meta.bg} ${signal.meta.border}`
                   : "border-white/10 bg-white/5"
               }`}
+              aria-live="polite"
             >
               <span className="text-2xl leading-none" aria-hidden>
-                {meta ? meta.emoji : "🤷"}
+                {signal ? signal.meta.emoji : "🤷"}
               </span>
               <div className="text-left">
                 <p
                   className={`text-sm font-semibold ${
-                    meta ? meta.text : "text-zinc-500"
+                    signal ? signal.meta.text : "text-zinc-400"
                   }`}
                 >
-                  {meta ? meta.headline : "No reports yet"}
+                  {signal ? signal.summary : "No reports yet"}
                 </p>
-                {board.latest && (
-                  <p className="text-xs text-zinc-500">
-                    {timeAgo(board.latest.ts, data.now)}
+                {board.latest && signal && (
+                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-zinc-400">
+                    <span
+                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${signal.dot}`}
+                      aria-hidden
+                    />
+                    last report {timeAgo(board.latest.ts, data.now)}
                   </p>
                 )}
               </div>
