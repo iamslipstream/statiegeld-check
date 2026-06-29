@@ -1,5 +1,4 @@
 import { TabLayout } from "@/components/TabLayout";
-import { HeatGreeting } from "@/components/HeatGreeting";
 import { getAllBoards, isPersistent, incrementVisitors } from "@/lib/store";
 import { getListings } from "@/lib/marketplace-store";
 import { getRequests } from "@/lib/housing-store";
@@ -24,8 +23,6 @@ export default async function Home() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-4">
-      <HeatGreeting />
-
       <header className="py-5 text-center">
         <p className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-zinc-400 ring-1 ring-white/10">
           <span aria-hidden>📍</span> Our Domain South East

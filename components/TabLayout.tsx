@@ -15,7 +15,7 @@ const TABS = [
   { id: "marketplace", label: "Marketplace", short: "Market", emoji: "🛍️" },
   { id: "housing", label: "Stays", short: "Stays", emoji: "🏠" },
   { id: "lost-found", label: "Lost & Found", short: "Lost", emoji: "🧦" },
-  { id: "recommendations", label: "Tips", short: "Tips", emoji: "💡" },
+  { id: "recommendations", label: "Recommendations", short: "Recs", emoji: "💡" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];

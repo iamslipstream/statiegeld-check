@@ -19,30 +19,18 @@ interface Signal {
   meta: StatusMeta;
   /** Headline, e.g. "Working" or "Not working". */
   summary: string;
-  /** Freshness dot colour, derived from how recent the newest report is. */
-  dot: string;
 }
 
 /**
  * Derive the signal straight from the most recent report — simple and
- * unambiguous. The newest report sets the tint and headline; its age sets the
- * freshness dot.
+ * unambiguous. The newest report sets the tint and headline.
  */
-function computeSignal(board: LocationBoard, now: number): Signal | null {
+function computeSignal(board: LocationBoard): Signal | null {
   const latest = board.latest;
   if (!latest) return null;
 
   const meta = STATUS_META[latest.status];
-
-  const age = now - latest.ts;
-  const dot =
-    age < ONE_HOUR_MS
-      ? "bg-emerald-400"
-      : age < 6 * ONE_HOUR_MS
-        ? "bg-amber-400"
-        : "bg-zinc-500";
-
-  return { meta, summary: meta.label, dot };
+  return { meta, summary: meta.label };
 }
 
 /** Monochrome icon for the report buttons — inherits the button's text colour. */
@@ -216,7 +204,7 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
 
         {LOCATIONS.map((loc) => {
         const board = data.boards[loc.id] ?? EMPTY;
-        const signal = computeSignal(board, data.now);
+        const signal = computeSignal(board);
         const recentCount = board.reports.filter(
           (r) => data.now - r.ts < ONE_HOUR_MS
         ).length;
@@ -252,11 +240,7 @@ export function BottleStatusWidget({ initial }: { initial: AppData }) {
                   {signal ? signal.summary : "No reports yet"}
                 </p>
                 {board.latest && signal && (
-                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-zinc-400">
-                    <span
-                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${signal.dot}`}
-                      aria-hidden
-                    />
+                  <p className="mt-0.5 text-xs text-zinc-400">
                     last report {timeAgo(board.latest.ts, data.now)}
                   </p>
                 )}
